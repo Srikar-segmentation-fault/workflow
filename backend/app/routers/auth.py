@@ -32,3 +32,16 @@ async def login(
 async def me(current: CurrentUser = Depends(get_current_user)) -> UserProfile:
     """Return the currently authenticated user's profile."""
     return UserProfile.model_validate(current.user)
+
+
+@router.get("/employees", response_model=list[UserProfile])
+async def list_employees(
+    current: CurrentUser = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> list[UserProfile]:
+    """Get all active employee profiles in the company."""
+    from app.repositories.user_repository import UserRepository
+    repo = UserRepository(session)
+    employees = await repo.get_active_employees()
+    return [UserProfile.model_validate(emp) for emp in employees]
+

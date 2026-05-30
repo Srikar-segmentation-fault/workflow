@@ -300,11 +300,21 @@ def render_assign_task_screen():
     # To be extremely robust, we fetch all profiles. Let's do a GET to /api/auth/me to verify backend, 
     # but we will provide manual selection if dynamic user fetch is complex.
     # Let's seed employee IDs.
-    employee_dict = {
-        "Bob Employee (Logistics)": "2b9213bc-3294-4395-8178-0e95c1c0451e",
-        "Charlie Employee (Sales)": "7a9423c1-1284-4822-b912-3f16a1b2413a",
-    }
-    
+    # Fetch active employees directory in real-time from the backend
+    emp_resp = APIClient.get("/api/auth/employees")
+    if emp_resp.status_code == 200:
+        employees = emp_resp.json()
+        employee_dict = {
+            f"{emp['full_name']} ({emp['department'] or 'General'})": emp["id"]
+            for emp in employees
+        }
+    else:
+        employee_dict = {}
+
+    if not employee_dict:
+        st.warning("⚠️ No active employees found in the workspace directory. Please register employees first.")
+        return
+
     assignee_name = st.selectbox("Assign Responsibility To", list(employee_dict.keys()))
     assigned_to_id = employee_dict[assignee_name]
 

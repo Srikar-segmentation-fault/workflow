@@ -100,8 +100,17 @@ async def suggest_priority(
     current: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Smart task triage: suggest priority + deadline from a description."""
-    result = await suggestTaskPriority(title=title, description=description)
+    try:
+        result = await suggestTaskPriority(title=title, description=description)
+    except Exception:
+        # Self-healing offline fallback
+        result = {
+            "priority": "medium",
+            "deadline_days": 5,
+            "reasoning": "Ollama service offline. Loaded fallback compliance defaults (Standard 5-day cycle)."
+        }
     return {"success": True, "data": result}
+
 
 
 @router.get("/health")
