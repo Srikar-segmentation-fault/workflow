@@ -1,0 +1,12 @@
+[theme]
+primaryColor = "#6D28D9" # Deep premium Violet
+backgroundColor = "#0F172A" # Dark Slate
+secondaryBackgroundColor = "#1E293B" # Mid Slate
+textColor = "#F8FAFC" # White Slate
+font = "sans serif"
+
+[server]
+port = 8501
+headless = true
+enableCORS = false
+enableXsrfProtection = false
