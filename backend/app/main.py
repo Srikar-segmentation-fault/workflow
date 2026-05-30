@@ -13,11 +13,30 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import settings
-from app.database import close_db, init_db
+import asyncio
+from app.database import close_db, init_db, AsyncSessionLocal
 from app.routers import ai, audit, auth, logs, tasks
 from app.services.ai_service import RAGService
+from app.services.task_service import TaskService
 
 logger = structlog.get_logger()
+
+
+async def overdue_checker_daemon() -> None:
+    """Asynchronous cron daemon periodically verifying and marking overdue tasks."""
+    logger.info("daemon.overdue_checker.started")
+    while True:
+        try:
+            async with AsyncSessionLocal() as session:
+                service = TaskService(session)
+                marked_count = await service.mark_overdue_tasks()
+                if marked_count > 0:
+                    logger.info("daemon.overdue_checker.marked_tasks", count=marked_count)
+                await session.commit()
+        except Exception as exc:
+            logger.error("daemon.overdue_checker.error", error=str(exc))
+        
+        await asyncio.sleep(60)  # Verify every 60 seconds
 
 
 @asynccontextmanager
@@ -25,6 +44,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Startup and shutdown lifecycle management."""
     # ── Startup ───────────────────────────────────────────────────────────────
     logger.info("workflow.startup", env=settings.app_env)
+
+    # Spawn real-time overdue checker background daemon
+    daemon_task = asyncio.create_task(overdue_checker_daemon())
 
     # Init DB tables (dev/test)
     if settings.is_development:
@@ -40,6 +62,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     # ── Shutdown ──────────────────────────────────────────────────────────────
+    daemon_task.cancel()
+    try:
+        await daemon_task
+    except asyncio.CancelledError:
+        pass
     await close_db()
     logger.info("workflow.shutdown")
 

@@ -1,0 +1,5 @@
+{
+  "appId": "com.workflow.app",
+  "appName": "WorkFlow App",
+  "webDir": "dist"
+}

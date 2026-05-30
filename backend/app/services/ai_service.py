@@ -357,6 +357,12 @@ class RAGService:
                 base_url=app_settings.ollama_base_url,
             )
 
+            if "sqlite" in database_url:
+                # In-memory Local RAG fallback
+                cls._index = VectorStoreIndex([])
+                logger.info("rag.initialized", store="local_in_memory_simple_vector_store")
+                return
+
             vector_store = SupabaseVectorStore(
                 postgres_connection_string=database_url,
                 collection_name="work_log_embeddings",

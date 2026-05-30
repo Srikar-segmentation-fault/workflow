@@ -13,12 +13,22 @@ from supabase import AsyncClient, acreate_client
 
 from app.config import settings
 
+from sqlalchemy import event
+
 # ── SQLAlchemy async engine ────────────────────────────────────────────────────
 if settings.database_url.startswith("sqlite"):
     engine = create_async_engine(
         settings.database_url,
         echo=settings.is_development,
     )
+    
+    # Activate WAL (Write-Ahead Logging) and Normal synchronous mode for SQLite concurrency
+    @event.listens_for(engine.sync_engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL;")
+        cursor.execute("PRAGMA synchronous=NORMAL;")
+        cursor.close()
 else:
     engine = create_async_engine(
         settings.database_url,
