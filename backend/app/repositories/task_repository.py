@@ -58,7 +58,7 @@ class TaskRepository(BaseRepository[Task]):
         return list(result.scalars().all())
 
     async def get_overdue(self) -> list[Task]:
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
         stmt = (
             select(Task)
             .where(

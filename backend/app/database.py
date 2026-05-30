@@ -14,13 +14,19 @@ from supabase import AsyncClient, acreate_client
 from app.config import settings
 
 # ── SQLAlchemy async engine ────────────────────────────────────────────────────
-engine = create_async_engine(
-    settings.database_url,
-    echo=settings.is_development,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-)
+if settings.database_url.startswith("sqlite"):
+    engine = create_async_engine(
+        settings.database_url,
+        echo=settings.is_development,
+    )
+else:
+    engine = create_async_engine(
+        settings.database_url,
+        echo=settings.is_development,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=20,
+    )
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
