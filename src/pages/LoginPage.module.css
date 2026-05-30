@@ -1,19 +1,36 @@
+/* ── Login Page ── */
 .page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f2f5;
+  background: #1e1e2e;
 }
 
 .card {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.32);
   padding: 2.5rem 2rem;
   width: 100%;
   max-width: 400px;
   text-align: center;
+}
+
+.langRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.langRow :global(.select) {
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.langRow :global(.select:hover),
+.langRow :global(.select:focus) {
+  border-color: #6c63ff;
 }
 
 .logo {
@@ -24,14 +41,12 @@
   margin-bottom: 0.25rem;
 }
 
-.logoIcon {
-  font-size: 1.8rem;
-}
+.logoIcon { font-size: 1.8rem; }
 
 .logoText {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #1e1e2e;
   margin: 0;
 }
 
@@ -55,23 +70,27 @@
 }
 
 .field label {
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .field input {
-  padding: 0.6rem 0.75rem;
-  border: 1px solid #d1d5db;
+  padding: 0.65rem 0.875rem;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.15s;
+  background: #fafafa;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .field input:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  border-color: #6c63ff;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.12);
 }
 
 .error {
@@ -79,32 +98,26 @@
   font-size: 0.85rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 6px;
-  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  padding: 0.5rem 0.875rem;
   margin: 0;
 }
 
 .btn {
-  padding: 0.7rem;
-  background: #4f46e5;
+  padding: 0.75rem;
+  background: #6c63ff;
   color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
   margin-top: 0.25rem;
+  letter-spacing: 0.02em;
 }
 
-.btn:hover:not(:disabled) {
-  background: #4338ca;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.btn:hover:not(:disabled) { background: #5a52d5; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .hint {
   margin-top: 1.5rem;
@@ -114,6 +127,7 @@
 
 .hint code {
   background: #f3f4f6;
-  padding: 0.1rem 0.3rem;
+  padding: 0.1rem 0.35rem;
   border-radius: 4px;
+  font-size: 0.78rem;
 }

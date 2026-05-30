@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { clearTasks } from '../api/taskStore';
 
 const AuthContext = createContext(null);
 
@@ -24,6 +25,8 @@ export function AuthProvider({ children }) {
   function logout() {
     localStorage.removeItem('wf_token');
     localStorage.removeItem('wf_user');
+    localStorage.removeItem('wf_task_statuses');
+    clearTasks();
     setToken(null);
     setUser(null);
   }

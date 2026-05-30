@@ -1,0 +1,96 @@
+{
+  "app": {
+    "name": "वर्कफ़्लो",
+    "tagline": "कार्य और जवाबदेही मंच"
+  },
+  "auth": {
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "emailPlaceholder": "आप@कंपनी.com",
+    "passwordPlaceholder": "••••••••",
+    "signIn": "साइन इन करें",
+    "signingIn": "साइन इन हो रहा है…",
+    "demoHint": "डेमो — manager@demo.com / employee@demo.com | पासवर्ड:",
+    "invalidCredentials": "अमान्य ईमेल या पासवर्ड",
+    "loginFailed": "लॉगिन विफल हुआ। कृपया पुनः प्रयास करें।"
+  },
+  "nav": {
+    "signOut": "साइन आउट",
+    "managerBadge": "प्रबंधक",
+    "employeeBadge": "कर्मचारी"
+  },
+  "manager": {
+    "allTasks": "सभी कार्य",
+    "assignTask": "+ कार्य सौंपें",
+    "whereIsMyTeam": "🤖 मेरी टीम कहाँ है?",
+    "generating": "⏳ तैयार हो रहा है…",
+    "whereIsMyTeamTitle": "🤖 मेरी टीम कहाँ है?",
+    "generatingSummary": "सारांश तैयार हो रहा है…",
+    "overdueAlert": "⚠ समय सीमा पार:",
+    "tableTitle": "कार्य शीर्षक",
+    "tableAssignedTo": "सौंपा गया",
+    "tablePriority": "प्राथमिकता",
+    "tableDeadline": "समय सीमा",
+    "tableStatus": "स्थिति",
+    "clickForAudit": "ऑडिट ट्रेल देखने के लिए क्लिक करें"
+  },
+  "assignModal": {
+    "title": "नया कार्य सौंपें",
+    "labelTitle": "शीर्षक",
+    "titlePlaceholder": "जैसे मासिक रिपोर्ट तैयार करें",
+    "labelDescription": "विवरण",
+    "descriptionPlaceholder": "क्या करना है?",
+    "labelAssignTo": "किसे सौंपें",
+    "labelPriority": "प्राथमिकता",
+    "labelDeadline": "समय सीमा",
+    "cancel": "रद्द करें",
+    "assignTask": "कार्य सौंपें",
+    "saving": "सहेजा जा रहा है…"
+  },
+  "audit": {
+    "title": "ऑडिट ट्रेल",
+    "close": "बंद करें",
+    "loadingHistory": "इतिहास लोड हो रहा है…",
+    "noHistory": "इस कार्य का अभी तक कोई इतिहास नहीं है।",
+    "taskCreated": "कार्य बनाया गया",
+    "statusUpdated": "स्थिति अपडेट की गई",
+    "workLogSubmitted": "कार्य लॉग सबमिट किया गया",
+    "logVerified": "लॉग सत्यापित किया गया",
+    "overdueAlert": "समय सीमा पार चेतावनी"
+  },
+  "employee": {
+    "myTasks": "मेरे कार्य",
+    "noTasks": "अभी तक आपको कोई कार्य नहीं सौंपा गया है।",
+    "due": "📅 समय सीमा:",
+    "overdue": "समय सीमा पार",
+    "submitWorkLog": "+ कार्य लॉग सबमिट करें",
+    "cancel": "रद्द करें",
+    "completed": "✓ पूर्ण",
+    "logPlaceholder": "आज आपने क्या काम किया — क्या पूरा हुआ और क्या बाकी है, स्पष्ट रूप से बताएं…",
+    "inProgress": "प्रगति में",
+    "completedStatus": "पूर्ण",
+    "submitLog": "लॉग सबमिट करें",
+    "submitting": "सबमिट हो रहा है…",
+    "attachProof": "प्रमाण फ़ाइल संलग्न करें (वैकल्पिक)",
+    "proofHint": "स्वीकृत: चित्र, PDF, टेक्स्ट, DOCX, XLSX — अधिकतम 10 MB",
+    "proofIncluded": "प्रमाण संलग्न"
+  },
+  "ai": {
+    "verificationLabel": "AI सत्यापन",
+    "confidence": "विश्वास",
+    "high": "उच्च",
+    "medium": "मध्यम",
+    "low": "निम्न"
+  },
+  "status": {
+    "pending": "लंबित",
+    "inProgress": "प्रगति में",
+    "done": "पूर्ण",
+    "overdue": "समय सीमा पार"
+  },
+  "priority": {
+    "high": "उच्च",
+    "medium": "मध्यम",
+    "low": "निम्न"
+  }
+}

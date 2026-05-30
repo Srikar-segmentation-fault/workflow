@@ -1,0 +1,96 @@
+{
+  "app": {
+    "name": "WorkFlow",
+    "tagline": "Task & Accountability Platform"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "emailPlaceholder": "you@company.com",
+    "passwordPlaceholder": "••••••••",
+    "signIn": "Sign In",
+    "signingIn": "Signing in…",
+    "demoHint": "Demo — manager@demo.com / employee@demo.com | password:",
+    "invalidCredentials": "Invalid email or password",
+    "loginFailed": "Login failed. Please try again."
+  },
+  "nav": {
+    "signOut": "Sign Out",
+    "managerBadge": "Manager",
+    "employeeBadge": "Employee"
+  },
+  "manager": {
+    "allTasks": "All Tasks",
+    "assignTask": "+ Assign Task",
+    "whereIsMyTeam": "🤖 Where's my team?",
+    "generating": "⏳ Generating…",
+    "whereIsMyTeamTitle": "🤖 Where's My Team?",
+    "generatingSummary": "Generating summary…",
+    "overdueAlert": "⚠ Overdue:",
+    "tableTitle": "Task Title",
+    "tableAssignedTo": "Assigned To",
+    "tablePriority": "Priority",
+    "tableDeadline": "Deadline",
+    "tableStatus": "Status",
+    "clickForAudit": "Click to view audit trail"
+  },
+  "assignModal": {
+    "title": "Assign New Task",
+    "labelTitle": "Title",
+    "titlePlaceholder": "e.g. Prepare monthly report",
+    "labelDescription": "Description",
+    "descriptionPlaceholder": "What needs to be done?",
+    "labelAssignTo": "Assign To",
+    "labelPriority": "Priority",
+    "labelDeadline": "Deadline",
+    "cancel": "Cancel",
+    "assignTask": "Assign Task",
+    "saving": "Saving…"
+  },
+  "audit": {
+    "title": "Audit Trail",
+    "close": "Close",
+    "loadingHistory": "Loading history…",
+    "noHistory": "No history yet for this task.",
+    "taskCreated": "Task Created",
+    "statusUpdated": "Status Updated",
+    "workLogSubmitted": "Work Log Submitted",
+    "logVerified": "Log Verified",
+    "overdueAlert": "Overdue Alert"
+  },
+  "employee": {
+    "myTasks": "My Tasks",
+    "noTasks": "No tasks assigned to you yet.",
+    "due": "📅 Due:",
+    "overdue": "OVERDUE",
+    "submitWorkLog": "+ Submit Work Log",
+    "cancel": "Cancel",
+    "completed": "✓ Completed",
+    "logPlaceholder": "Describe what you worked on today — be specific about what was done and what remains…",
+    "inProgress": "In Progress",
+    "completedStatus": "Completed",
+    "submitLog": "Submit Log",
+    "submitting": "Submitting…",
+    "attachProof": "Attach proof file (optional)",
+    "proofHint": "Accepted: images, PDF, text, DOCX, XLSX — max 10 MB",
+    "proofIncluded": "Proof attached"
+  },
+  "ai": {
+    "verificationLabel": "AI Verification",
+    "confidence": "Confidence",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "status": {
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "done": "Done",
+    "overdue": "Overdue"
+  },
+  "priority": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  }
+}

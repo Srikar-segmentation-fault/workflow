@@ -1,13 +1,20 @@
+/* ═══════════════════════════════════════════════════════════
+   WorkFlow — Manager Dashboard
+   Layout: dark sidebar header + white content area
+   Accent: #6c63ff
+═══════════════════════════════════════════════════════════ */
+
 .page {
   min-height: 100vh;
-  background: #f0f2f5;
+  background: #f4f5f7;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ── Header ── */
+/* ── Top header bar (dark) ── */
 .header {
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 0 2rem;
+  background: #1e1e2e;
+  padding: 0 1.5rem;
   height: 60px;
   display: flex;
   align-items: center;
@@ -15,47 +22,211 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
 }
 
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
-.headerLeft span {
-  font-size: 1.4rem;
-}
+.headerLeft span { font-size: 1.3rem; }
 
 .headerLeft h1 {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #ffffff;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .badge {
-  font-size: 0.7rem;
-  background: #4f46e5;
+  font-size: 0.68rem;
+  background: #6c63ff;
   color: #fff;
-  padding: 0.15rem 0.5rem;
+  padding: 0.15rem 0.55rem;
   border-radius: 999px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 /* ── Main content ── */
 .main {
-  padding: 1.5rem 2rem;
-  max-width: 1200px;
+  padding: 1.5rem;
+  max-width: 1280px;
   margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Problem 5 — Attention button ── */
+.attentionBtn {
+  background: rgba(249, 115, 22, 0.12);
+  border: 1.5px solid #f97316;
+  color: #fb923c;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+.attentionBtn:hover { background: rgba(249, 115, 22, 0.2); }
+.attentionBtnActive { background: #f97316; color: #fff; border-color: #f97316; }
+
+/* ── Problem 1 — Stats bar ── */
+.statsBar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.statCard {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+  flex: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #ebebf0;
+}
+
+.statCardAlert {
+  border-color: #fca5a5;
+  background: #fff8f8;
+}
+
+.statNum {
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #1e1e2e;
+}
+
+.statLabel {
+  font-size: 0.68rem;
+  color: #9ca3af;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.statPending    { color: #f59e0b; }
+.statInProgress { color: #6c63ff; }
+.statDone       { color: #10b981; }
+.statOverdue    { color: #ef4444; }
+
+/* ── Problem 3 — Employee panel ── */
+.employeePanel {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #ebebf0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.panelTitle {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #6b7280;
+  margin: 0 0 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.employeeGrid {
+  display: flex;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.empCard {
+  flex: 1;
+  min-width: 180px;
+  background: #fafafa;
+  border: 1px solid #ebebf0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.empCardAlert {
+  border-color: #fca5a5;
+  background: #fff8f8;
+  border-left: 3px solid #ef4444;
+}
+
+.empHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+.empName {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #1e1e2e;
+}
+
+.empBadgeOverdue {
+  font-size: 0.68rem;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-weight: 700;
+}
+
+.empBadgeNoLog {
+  font-size: 0.68rem;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-weight: 700;
+}
+
+.empProgress { display: flex; flex-direction: column; gap: 5px; }
+
+.progressBar {
+  height: 5px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #6c63ff;
+  border-radius: 999px;
+}
+
+.progressLabel {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  font-weight: 500;
 }
 
 /* ── Overdue banner ── */
 .overdueBanner {
-  background: #fef2f2;
+  background: #fff8f8;
   border: 1px solid #fecaca;
+  border-left: 4px solid #ef4444;
   border-radius: 8px;
   padding: 0.75rem 1rem;
   margin-bottom: 1.25rem;
@@ -67,22 +238,21 @@
 .overdueBanner strong {
   color: #dc2626;
   white-space: nowrap;
+  font-size: 0.85rem;
 }
 
 .overdueList {
   color: #b91c1c;
-  font-size: 0.875rem;
+  font-size: 0.82rem;
   margin: 0;
   padding: 0;
   list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 1rem;
+  gap: 0.3rem 1rem;
 }
 
-.overdueList li::before {
-  content: '⚠ ';
-}
+.overdueList li::before { content: '⚠ '; }
 
 /* ── Toolbar ── */
 .toolbar {
@@ -94,10 +264,16 @@
   gap: 0.75rem;
 }
 
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .toolbar h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #111827;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e1e2e;
   margin: 0;
 }
 
@@ -106,49 +282,51 @@
   gap: 0.75rem;
 }
 
+.clearFilter {
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  cursor: pointer;
+}
+.clearFilter:hover { background: #f3f4f6; }
+
+/* ── Buttons ── */
 .btnPrimary {
-  padding: 0.5rem 1rem;
-  background: #4f46e5;
+  padding: 0.5rem 1.1rem;
+  background: #6c63ff;
   color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  letter-spacing: 0.01em;
 }
-
-.btnPrimary:hover {
-  background: #4338ca;
-}
+.btnPrimary:hover { background: #5a52d5; }
 
 .btnSecondary {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.1rem;
   background: #fff;
   color: #374151;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s;
 }
+.btnSecondary:hover { background: #f9fafb; }
+.btnSecondary:disabled { opacity: 0.55; cursor: not-allowed; }
 
-.btnSecondary:hover {
-  background: #f9fafb;
-}
-
-.btnSecondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* ── Table ── */
+/* ── Task table ── */
 .tableWrap {
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
+  border: 1px solid #ebebf0;
 }
 
 .table {
@@ -158,136 +336,133 @@
 }
 
 .table thead tr {
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: #1e1e2e;
 }
 
 .table th {
   padding: 0.75rem 1rem;
   text-align: left;
   font-weight: 600;
-  color: #6b7280;
-  font-size: 0.78rem;
+  color: #a0a0b8;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
 }
 
 .table td {
-  padding: 0.85rem 1rem;
+  padding: 0.875rem 1rem;
   border-bottom: 1px solid #f3f4f6;
   color: #374151;
   vertical-align: middle;
 }
 
-.table tbody tr:last-child td {
-  border-bottom: none;
-}
+.table tbody tr:last-child td { border-bottom: none; }
 
 .table tbody tr {
   cursor: pointer;
-  transition: background 0.1s;
 }
 
-.table tbody tr:hover {
-  background: #f9fafb;
-}
+.table tbody tr:hover { background: #f9f9ff; }
 
-.rowOverdue {
-  background: #fff5f5 !important;
-}
-
-.rowOverdue:hover {
-  background: #fee2e2 !important;
-}
+.rowOverdue { background: #fff8f8 !important; }
+.rowOverdue:hover { background: #fff0f0 !important; }
 
 /* ── Status & Priority badges ── */
 .statusBadge {
   display: inline-block;
-  padding: 0.2rem 0.6rem;
+  padding: 0.22rem 0.65rem;
   border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .statusPending    { background: #f3f4f6; color: #6b7280; }
-.statusInProgress { background: #eff6ff; color: #2563eb; }
-.statusOverdue    { background: #fef2f2; color: #dc2626; }
-.statusDone       { background: #f0fdf4; color: #16a34a; }
+.statusInProgress { background: #ede9ff; color: #6c63ff; }
+.statusOverdue    { background: #fee2e2; color: #dc2626; }
+.statusDone       { background: #d1fae5; color: #065f46; }
 
 .priorityBadge {
   display: inline-block;
-  padding: 0.2rem 0.6rem;
+  padding: 0.22rem 0.65rem;
   border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
-.priorityHigh   { background: #fef2f2; color: #dc2626; }
-.priorityMedium { background: #fffbeb; color: #d97706; }
-.priorityLow    { background: #f0fdf4; color: #16a34a; }
+.priorityHigh   { background: #fee2e2; color: #b91c1c; }
+.priorityMedium { background: #fef3c7; color: #92400e; }
+.priorityLow    { background: #d1fae5; color: #065f46; }
+
+/* ── Logs column ── */
+.noLog {
+  font-size: 0.75rem;
+  color: #d1d5db;
+  font-style: italic;
+}
+
+.emptyRow {
+  text-align: center;
+  color: #9ca3af;
+  padding: 2rem;
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+/* ── AI confidence pills ── */
+.confPill {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 9px;
+  letter-spacing: 0.02em;
+}
+.confHigh   { background: #d1fae5; color: #065f46; }
+.confMedium { background: #fef3c7; color: #92400e; }
+.confLow    { background: #fee2e2; color: #b91c1c; }
 
 /* ── AI Summary panel ── */
 .summaryPanel {
   margin-top: 1.5rem;
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   padding: 1.25rem 1.5rem;
+  border: 1px solid #ebebf0;
+  border-left: 4px solid #6c63ff;
 }
 
 .summaryPanel h3 {
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111827;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  margin: 0 0 0.875rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e1e2e;
 }
 
 .summaryText {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: #374151;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
-.summaryText p {
-  margin: 0.4rem 0;
-}
-
-.summaryText strong {
-  color: #111827;
-  font-weight: 700;
-}
-
-.summaryText ul,
-.summaryText ol {
-  margin: 0.4rem 0 0.4rem 1.25rem;
-  padding: 0;
-}
-
-.summaryText li {
-  margin-bottom: 0.25rem;
-}
-
-.summaryText h1,
-.summaryText h2,
-.summaryText h3 {
+.summaryText p { margin: 0.4rem 0; }
+.summaryText strong { color: #1e1e2e; font-weight: 700; }
+.summaryText ul, .summaryText ol { margin: 0.4rem 0 0.4rem 1.25rem; padding: 0; }
+.summaryText li { margin-bottom: 0.25rem; }
+.summaryText h1, .summaryText h2, .summaryText h3 {
   margin: 0.75rem 0 0.25rem;
-  color: #111827;
-  font-size: 0.95rem;
-}
-
-.summaryLoading {
-  color: #9ca3af;
+  color: #1e1e2e;
   font-size: 0.9rem;
 }
 
-/* ── Modal overlay ── */
+.summaryLoading { color: #9ca3af; font-size: 0.875rem; }
+
+/* ── Modal ── */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -301,20 +476,20 @@
   width: 100%;
   max-width: 480px;
   padding: 1.75rem;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
 }
 
 .modal h2 {
   margin: 0 0 1.25rem;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  color: #111827;
+  color: #1e1e2e;
 }
 
 .modalForm {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 0.875rem;
 }
 
 .field {
@@ -324,30 +499,31 @@
 }
 
 .field label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #374151;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b7280;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
 .field input,
 .field textarea,
 .field select {
-  padding: 0.55rem 0.75rem;
-  border: 1px solid #d1d5db;
+  padding: 0.6rem 0.875rem;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   outline: none;
   font-family: inherit;
-  transition: border-color 0.15s;
+  background: #fafafa;
 }
 
 .field input:focus,
 .field textarea:focus,
 .field select:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+  border-color: #6c63ff;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
 }
 
 .field textarea {
@@ -366,7 +542,7 @@
 .drawerOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.4);
   z-index: 300;
 }
 
@@ -375,10 +551,10 @@
   top: 0;
   right: 0;
   height: 100vh;
-  width: 400px;
+  width: 420px;
   max-width: 95vw;
   background: #fff;
-  box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+  box-shadow: -4px 0 32px rgba(0, 0, 0, 0.18);
   z-index: 301;
   display: flex;
   flex-direction: column;
@@ -386,13 +562,11 @@
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.drawerOpen {
-  transform: translateX(0);
-}
+.drawerOpen { transform: translateX(0); }
 
 .drawerHeader {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  background: #1e1e2e;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -401,30 +575,60 @@
 
 .drawerHeader h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: #111827;
+  color: #fff;
 }
 
-.drawerHeader p {
-  margin: 0.2rem 0 0;
-  font-size: 0.8rem;
-  color: #6b7280;
+.drawerTaskTitle {
+  font-size: 0.78rem;
+  color: #a0a0b8;
+  margin: 3px 0 0;
 }
 
 .drawerClose {
-  background: none;
+  background: rgba(255, 255, 255, 0.08);
   border: none;
-  font-size: 1.25rem;
+  font-size: 1rem;
   cursor: pointer;
-  color: #6b7280;
-  padding: 0.1rem 0.3rem;
-  border-radius: 4px;
+  color: #a0a0b8;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
   flex-shrink: 0;
+  line-height: 1;
+}
+.drawerClose:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+
+/* ── Drawer tabs ── */
+.drawerTabs {
+  display: flex;
+  border-bottom: 1px solid #ebebf0;
+  background: #fafafa;
 }
 
-.drawerClose:hover {
-  background: #f3f4f6;
+.drawerTab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.7rem 1rem;
+  font-size: 0.82rem;
+  color: #9ca3af;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 500;
+}
+.drawerTab:hover { color: #374151; }
+.drawerTabActive { color: #6c63ff; border-bottom-color: #6c63ff; font-weight: 700; }
+
+.tabBadge {
+  background: #6c63ff;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  padding: 1px 6px;
+  font-weight: 700;
 }
 
 .drawerBody {
@@ -446,7 +650,7 @@
   top: 0.5rem;
   bottom: 0;
   width: 2px;
-  background: #e5e7eb;
+  background: #ebebf0;
 }
 
 .timelineItem {
@@ -462,34 +666,36 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #4f46e5;
+  background: #6c63ff;
   border: 2px solid #fff;
-  box-shadow: 0 0 0 2px #4f46e5;
+  box-shadow: 0 0 0 2px #6c63ff;
 }
 
 .timelineTime {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: #9ca3af;
   margin-bottom: 0.2rem;
+  font-weight: 500;
 }
 
 .timelineActor {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #111827;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1e1e2e;
 }
 
 .timelineAction {
-  font-size: 0.875rem;
-  color: #4f46e5;
+  font-size: 0.85rem;
+  color: #6c63ff;
   margin-left: 0.3rem;
+  font-weight: 500;
 }
 
 .timelineDetail {
-  font-size: 0.825rem;
+  font-size: 0.8rem;
   color: #6b7280;
-  margin-top: 0.2rem;
-  line-height: 1.5;
+  margin-top: 0.25rem;
+  line-height: 1.55;
 }
 
 .emptyHistory {
@@ -498,3 +704,78 @@
   text-align: center;
   padding: 2rem 0;
 }
+
+/* ── Work log list in drawer ── */
+.logList { display: flex; flex-direction: column; gap: 0.875rem; }
+
+.logEntry {
+  background: #fafafa;
+  border: 1px solid #ebebf0;
+  border-radius: 8px;
+  padding: 0.875rem;
+  border-left: 3px solid #6c63ff;
+}
+
+.logTimestamp {
+  font-size: 0.75rem;
+  color: #6c63ff;
+  background: #f0eeff;
+  border-radius: 6px;
+  padding: 3px 10px;
+  margin-bottom: 8px;
+  display: inline-block;
+  font-weight: 600;
+}
+.logTimestamp strong { color: #4a42cc; }
+
+.logMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.logActor { font-weight: 700; font-size: 0.82rem; color: #1e1e2e; }
+.logTime  { font-size: 0.72rem; color: #9ca3af; }
+.logProof {
+  font-size: 0.7rem;
+  background: #ede9ff;
+  color: #6c63ff;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-weight: 600;
+}
+
+.logStatusPill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.logStatusDone     { background: #d1fae5; color: #065f46; }
+.logStatusProgress { background: #ede9ff; color: #6c63ff; }
+
+.logText {
+  font-size: 0.85rem;
+  color: #374151;
+  margin: 0 0 0.6rem;
+  line-height: 1.6;
+}
+
+.logAI { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.logFeedback { font-size: 0.78rem; color: #6b7280; font-style: italic; }
+
+/* ── Empty drawer state ── */
+.emptyDrawer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: #9ca3af;
+  gap: 0.5rem;
+}
+.emptyIcon { font-size: 2.25rem; }
+.emptyHint { font-size: 0.78rem; color: #d1d5db; line-height: 1.5; }

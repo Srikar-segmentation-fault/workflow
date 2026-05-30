@@ -1,0 +1,96 @@
+{
+  "app": {
+    "name": "వర్క్‌ఫ్లో",
+    "tagline": "టాస్క్ & జవాబుదారీతనం వేదిక"
+  },
+  "auth": {
+    "email": "ఇమెయిల్",
+    "password": "పాస్‌వర్డ్",
+    "emailPlaceholder": "మీరు@కంపెనీ.com",
+    "passwordPlaceholder": "••••••••",
+    "signIn": "సైన్ ఇన్",
+    "signingIn": "సైన్ ఇన్ అవుతోంది…",
+    "demoHint": "డెమో — manager@demo.com / employee@demo.com | పాస్‌వర్డ్:",
+    "invalidCredentials": "చెల్లని ఇమెయిల్ లేదా పాస్‌వర్డ్",
+    "loginFailed": "లాగిన్ విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి."
+  },
+  "nav": {
+    "signOut": "సైన్ అవుట్",
+    "managerBadge": "మేనేజర్",
+    "employeeBadge": "ఉద్యోగి"
+  },
+  "manager": {
+    "allTasks": "అన్ని పనులు",
+    "assignTask": "+ పని అప్పగించు",
+    "whereIsMyTeam": "🤖 నా టీమ్ ఎక్కడ ఉంది?",
+    "generating": "⏳ రూపొందిస్తోంది…",
+    "whereIsMyTeamTitle": "🤖 నా టీమ్ ఎక్కడ ఉంది?",
+    "generatingSummary": "సారాంశం రూపొందిస్తోంది…",
+    "overdueAlert": "⚠ గడువు మించింది:",
+    "tableTitle": "పని శీర్షిక",
+    "tableAssignedTo": "అప్పగించబడింది",
+    "tablePriority": "ప్రాధాన్యత",
+    "tableDeadline": "గడువు తేదీ",
+    "tableStatus": "స్థితి",
+    "clickForAudit": "ఆడిట్ ట్రయల్ చూడటానికి క్లిక్ చేయండి"
+  },
+  "assignModal": {
+    "title": "కొత్త పని అప్పగించు",
+    "labelTitle": "శీర్షిక",
+    "titlePlaceholder": "ఉదా. నెలవారీ నివేదిక తయారు చేయండి",
+    "labelDescription": "వివరణ",
+    "descriptionPlaceholder": "ఏమి చేయాలి?",
+    "labelAssignTo": "ఎవరికి అప్పగించాలి",
+    "labelPriority": "ప్రాధాన్యత",
+    "labelDeadline": "గడువు తేదీ",
+    "cancel": "రద్దు చేయి",
+    "assignTask": "పని అప్పగించు",
+    "saving": "సేవ్ అవుతోంది…"
+  },
+  "audit": {
+    "title": "ఆడిట్ ట్రయల్",
+    "close": "మూసివేయి",
+    "loadingHistory": "చరిత్ర లోడ్ అవుతోంది…",
+    "noHistory": "ఈ పనికి ఇంకా చరిత్ర లేదు.",
+    "taskCreated": "పని సృష్టించబడింది",
+    "statusUpdated": "స్థితి నవీకరించబడింది",
+    "workLogSubmitted": "పని లాగ్ సమర్పించబడింది",
+    "logVerified": "లాగ్ ధృవీకరించబడింది",
+    "overdueAlert": "గడువు మించిన హెచ్చరిక"
+  },
+  "employee": {
+    "myTasks": "నా పనులు",
+    "noTasks": "మీకు ఇంకా పనులు అప్పగించబడలేదు.",
+    "due": "📅 గడువు:",
+    "overdue": "గడువు మించింది",
+    "submitWorkLog": "+ పని లాగ్ సమర్పించు",
+    "cancel": "రద్దు చేయి",
+    "completed": "✓ పూర్తయింది",
+    "logPlaceholder": "మీరు ఈరోజు ఏమి చేశారో వివరించండి — ఏమి పూర్తయింది మరియు ఏమి మిగిలిందో స్పష్టంగా చెప్పండి…",
+    "inProgress": "పురోగతిలో ఉంది",
+    "completedStatus": "పూర్తయింది",
+    "submitLog": "లాగ్ సమర్పించు",
+    "submitting": "సమర్పిస్తోంది…",
+    "attachProof": "రుజువు ఫైల్ జోడించు (ఐచ్ఛికం)",
+    "proofHint": "అంగీకరించబడినవి: చిత్రాలు, PDF, టెక్స్ట్, DOCX, XLSX — గరిష్టం 10 MB",
+    "proofIncluded": "రుజువు జోడించబడింది"
+  },
+  "ai": {
+    "verificationLabel": "AI ధృవీకరణ",
+    "confidence": "విశ్వాసం",
+    "high": "అధిక",
+    "medium": "మధ్యమ",
+    "low": "తక్కువ"
+  },
+  "status": {
+    "pending": "పెండింగ్",
+    "inProgress": "పురోగతిలో ఉంది",
+    "done": "పూర్తయింది",
+    "overdue": "గడువు మించింది"
+  },
+  "priority": {
+    "high": "అధిక",
+    "medium": "మధ్యమ",
+    "low": "తక్కువ"
+  }
+}
