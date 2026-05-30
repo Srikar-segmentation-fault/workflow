@@ -231,11 +231,10 @@ export default function EmployeeDashboard() {
       prev.map((t) => t.id === taskId ? { ...t, status: resolvedStatus } : t)
     );
 
-    // 3. Manually fire a storage event so the manager dashboard (same tab)
-    //    picks up the change instantly without waiting for the poll interval.
-    //    The native 'storage' event only fires in OTHER tabs, so we dispatch
-    //    a custom event that our manager listener also handles.
+    // 3. Fire storage events for both keys so the manager dashboard
+    //    picks up the task status AND the new log entry instantly.
     window.dispatchEvent(new StorageEvent('storage', { key: 'wf_tasks' }));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'wf_logs' }));
   }
 
   return (

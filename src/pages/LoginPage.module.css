@@ -131,3 +131,60 @@
   border-radius: 4px;
   font-size: 0.78rem;
 }
+
+/* ── Demo accounts quick-fill ── */
+.demoAccounts {
+  margin-top: 1.5rem;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 1rem;
+}
+
+.demoTitle {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  text-align: center;
+  margin: 0 0 0.75rem;
+}
+
+.demoTitle code {
+  background: #f3f4f6;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+}
+
+.demoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.demoBtn {
+  padding: 0.45rem 0.5rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  color: #374151;
+  cursor: pointer;
+  text-align: left;
+  font-weight: 500;
+}
+
+.demoBtn:hover {
+  background: #f3f4f6;
+  border-color: #6c63ff;
+  color: #6c63ff;
+}
+
+.demoBtnManager {
+  grid-column: 1 / -1;
+  background: #f0eeff;
+  border-color: #c4b5fd;
+  color: #6c63ff;
+  font-weight: 600;
+}
+
+.demoBtnManager:hover {
+  background: #ede9ff;
+}

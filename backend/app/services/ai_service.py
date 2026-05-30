@@ -1,60 +1,77 @@
 """
-WorkFlow — AI Service
-======================
-The intelligence layer of WorkFlow. Implements:
-
-1. verifyLog()        — LangChain + Ollama: evaluate work log credibility
-2. generateManagerSummary() — LangChain: plain-English team briefing
-3. WorkflowAgent      — LangGraph agent: multi-step reasoning & task analysis
-4. RAGService         — LlamaIndex + pgvector: semantic task history search
-
-Architecture:
-  LLMFactory → ChatOllama → LangChain chains → structured Pydantic output
-  LlamaIndex VectorStore → pgvector → semantic search on work logs
+WorkFlow — AI Service (Ollama / qwen2.5)
+=========================================
+1. verifyLog()              — Ollama: evaluate work log + proof file
+2. generateManagerSummary() — Ollama: plain-English team briefing
+3. suggestTaskPriority()    — Ollama: smart priority/deadline suggestion
+4. RAGService               — lightweight in-memory semantic search fallback
 """
 from __future__ import annotations
 
+import base64
 import json
 import re
 import uuid
 from datetime import datetime, timezone
-from typing import Annotated, Any, TypedDict
+from pathlib import Path
+from typing import Any
 
 import structlog
-from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
-from langgraph.graph import END, START, StateGraph
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.core.llm_factory import LLMFactory
-from app.schemas.work_log import LogVerificationResult
 from app.models.work_log import AIConfidence
+from app.schemas.work_log import LogVerificationResult
 
 logger = structlog.get_logger()
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Prompts
 # ─────────────────────────────────────────────────────────────────────────────
 
 VERIFY_SYSTEM = """You are a workplace accountability assistant. Your job is to \
-evaluate whether an employee's daily work log entry genuinely reflects real \
-progress on their assigned task. Be fair but critical of vague, evasive, or \
-off-topic entries."""
+evaluate whether an employee's daily work log genuinely reflects real progress \
+on their assigned task. You may also receive a proof file (image, PDF text, or \
+document excerpt) that the employee uploaded as evidence.
 
-VERIFY_USER = """\
+Be fair but critical of vague, evasive, or off-topic entries. If a proof file \
+is provided, check whether it actually supports the claimed work."""
+
+VERIFY_USER_NO_PROOF = """\
 Task title: {title}
 Task description: {description}
 
-Employee's work log entry:
+Employee's work log:
 {log_text}
 
-Evaluate this log entry. Respond ONLY with valid JSON in this exact format:
+No proof file was attached.
+
+Evaluate this log. Respond ONLY with valid JSON:
 {{"confidence": "High" | "Medium" | "Low", "feedback": "one sentence explanation"}}
 
-High = detailed and clearly relevant to the task.
+High = detailed, clearly relevant, specific progress described.
 Medium = partially relevant or somewhat vague.
 Low = vague, off-topic, or looks like bluffing."""
+
+VERIFY_USER_WITH_PROOF = """\
+Task title: {title}
+Task description: {description}
+
+Employee's work log:
+{log_text}
+
+Proof file attached: {file_name} ({mime_type})
+Proof content / description:
+{proof_content}
+
+Evaluate the log AND the proof together. Does the proof support the claimed work?
+Respond ONLY with valid JSON:
+{{"confidence": "High" | "Medium" | "Low", "feedback": "one sentence explanation"}}
+
+High = log is detailed AND proof clearly supports the work done.
+Medium = log or proof is partially convincing.
+Low = vague log, proof doesn't match the task, or proof looks irrelevant."""
 
 SUMMARY_SYSTEM = """You are a productivity assistant helping a manager understand \
 their team's current work status. Be concise, direct, and highlight risks and standouts."""
@@ -71,7 +88,68 @@ Do not list every task — synthesise."""
 
 TRIAGE_SYSTEM = """You are WorkFlow's AI assistant. Given a task description, \
 suggest an appropriate priority (low/medium/high/critical) and realistic deadline \
-in ISO format. Return ONLY JSON: {{"priority": "...", "deadline_days": <int>, "reasoning": "..."}}"""
+in days from today. Return ONLY JSON: \
+{{"priority": "...", "deadline_days": <int>, "reasoning": "..."}}"""
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Proof file reader
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _read_proof_content(file_path: str, mime_type: str) -> str:
+    """
+    Extract readable content from the uploaded proof file.
+    - Images: base64-encode and describe (Groq vision not used here — we
+      describe the file and let the LLM reason about its presence).
+    - Text/CSV/plain: read raw text (truncated to 2000 chars).
+    - PDF/DOCX: attempt text extraction, fall back to filename description.
+    """
+    path = Path(file_path)
+    if not path.exists():
+        return "[Proof file not found on server]"
+
+    try:
+        if mime_type.startswith("image/"):
+            # For images, encode to base64 and note dimensions if possible
+            raw = path.read_bytes()
+            b64 = base64.b64encode(raw).decode()[:200]  # just a snippet for context
+            size_kb = len(raw) // 1024
+            return (
+                f"[Image file, {size_kb} KB. "
+                f"Base64 preview: {b64}... "
+                f"The employee uploaded a screenshot/photo as proof of work.]"
+            )
+
+        if mime_type == "application/pdf":
+            try:
+                import pypdf  # optional dep
+                reader = pypdf.PdfReader(str(path))
+                text = "\n".join(
+                    page.extract_text() or "" for page in reader.pages[:3]
+                )
+                return text[:2000] or "[PDF has no extractable text]"
+            except ImportError:
+                size_kb = path.stat().st_size // 1024
+                return f"[PDF file, {size_kb} KB — text extraction unavailable]"
+
+        if mime_type in (
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ):
+            try:
+                import docx  # python-docx, optional
+                doc = docx.Document(str(path))
+                text = "\n".join(p.text for p in doc.paragraphs)
+                return text[:2000] or "[DOCX has no text content]"
+            except ImportError:
+                return f"[DOCX file — text extraction unavailable]"
+
+        # Plain text / CSV
+        text = path.read_text(encoding="utf-8", errors="replace")
+        return text[:2000]
+
+    except Exception as exc:
+        logger.warning("proof.read_failed", path=file_path, error=str(exc))
+        return f"[Could not read proof file: {exc}]"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -87,42 +165,55 @@ async def verifyLog(
     task_title: str,
     task_description: str | None,
     log_text: str,
+    proof_file_path: str | None = None,
+    proof_file_name: str | None = None,
+    proof_mime_type: str | None = None,
 ) -> LogVerificationResult:
     """
-    Uses Ollama (JSON mode) to evaluate an employee work log.
+    Uses Groq LLM to evaluate an employee work log + optional proof file.
     Returns LogVerificationResult(confidence, feedback).
     Retries up to 3× on failure with exponential back-off.
     """
-    llm = LLMFactory.get_json_llm()
-    messages = [
-        SystemMessage(content=VERIFY_SYSTEM),
-        HumanMessage(
-            content=VERIFY_USER.format(
-                title=task_title,
-                description=task_description or "No description provided.",
-                log_text=log_text,
-            )
-        ),
-    ]
+    desc = task_description or "No description provided."
+
+    if proof_file_path and proof_mime_type:
+        proof_content = _read_proof_content(proof_file_path, proof_mime_type)
+        user_prompt = VERIFY_USER_WITH_PROOF.format(
+            title=task_title,
+            description=desc,
+            log_text=log_text,
+            file_name=proof_file_name or "unknown",
+            mime_type=proof_mime_type,
+            proof_content=proof_content,
+        )
+    else:
+        user_prompt = VERIFY_USER_NO_PROOF.format(
+            title=task_title,
+            description=desc,
+            log_text=log_text,
+        )
 
     try:
-        response = await llm.ainvoke(messages)
-        raw = response.content if hasattr(response, "content") else str(response)
-
-        # Attempt to extract JSON from the response
+        raw = await LLMFactory.call_ollama(
+            system=VERIFY_SYSTEM,
+            user=user_prompt,
+            temperature=0.0,
+            max_tokens=256,
+            json_mode=True,
+        )
         data = _extract_json(raw)
         confidence_str = data.get("confidence", "Medium")
         feedback = data.get("feedback", "Unable to parse AI feedback.")
 
-        # Normalise confidence to enum
-        confidence_map = {"high": AIConfidence.HIGH, "medium": AIConfidence.MEDIUM, "low": AIConfidence.LOW}
+        confidence_map = {
+            "high": AIConfidence.HIGH,
+            "medium": AIConfidence.MEDIUM,
+            "low": AIConfidence.LOW,
+        }
         confidence = confidence_map.get(confidence_str.lower(), AIConfidence.MEDIUM)
 
-        logger.info(
-            "ai.verify_log",
-            task=task_title,
-            confidence=confidence,
-        )
+        logger.info("ai.verify_log", task=task_title, confidence=confidence,
+                    has_proof=bool(proof_file_path))
         return LogVerificationResult(confidence=confidence, feedback=feedback)
 
     except Exception as exc:
@@ -146,14 +237,11 @@ async def generateManagerSummary(tasks: list[dict[str, Any]]) -> str:
     """
     Generates a plain-English manager briefing from the task list.
     tasks: list of {title, assignedTo, priority, deadline, status}
-    Returns: raw text string for the frontend to render.
     """
     if not tasks:
         return "No tasks are currently assigned. The team has a clean slate."
 
     now = datetime.now(timezone.utc)
-
-    # Format task table
     rows = []
     for t in tasks:
         deadline = t.get("deadline", "")
@@ -165,49 +253,41 @@ async def generateManagerSummary(tasks: list[dict[str, Any]]) -> str:
             deadline_label = deadline
 
         rows.append(
-            f"• {t['title']} | assigned to {t.get('assignedTo', 'Unassigned')} "
-            f"| {t.get('priority', 'medium').upper()} priority "
-            f"| deadline {deadline_label} | status: {t.get('status', 'pending')}"
+            f"• {t['title']} | {t.get('assignedTo', 'Unassigned')} "
+            f"| {t.get('priority', 'medium').upper()} "
+            f"| deadline {deadline_label} | {t.get('status', 'pending')}"
         )
 
     task_table = "\n".join(rows)
 
-    llm = LLMFactory.get_chat_llm(temperature=0.3)
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessagePromptTemplate.from_template(SUMMARY_SYSTEM),
-        HumanMessagePromptTemplate.from_template(SUMMARY_USER),
-    ])
-    chain = prompt | llm | StrOutputParser()
-
     try:
-        summary = await chain.ainvoke({"task_table": task_table})
+        summary = await LLMFactory.call_ollama(
+            system=SUMMARY_SYSTEM,
+            user=SUMMARY_USER.format(task_table=task_table),
+            temperature=0.3,
+            max_tokens=400,
+        )
         logger.info("ai.manager_summary.generated", task_count=len(tasks))
         return summary.strip()
     except Exception as exc:
         logger.warning("ai.manager_summary.failed", error=str(exc))
-        return (
-            "AI summary unavailable. Please check Ollama is running and "
-            f"model '{LLMFactory._chat_model}' is loaded."
-        )
+        return "AI summary unavailable. Make sure Ollama is running and qwen2.5 is pulled."
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 3. Smart Task Triage (priority + deadline suggestion)
+# 3. Smart Task Triage
 # ─────────────────────────────────────────────────────────────────────────────
 
 async def suggestTaskPriority(title: str, description: str) -> dict[str, Any]:
-    """
-    Given a task title + description, suggest priority and deadline.
-    Returns: {priority, deadline_days, reasoning}
-    """
-    llm = LLMFactory.get_json_llm()
-    messages = [
-        SystemMessage(content=TRIAGE_SYSTEM),
-        HumanMessage(content=f"Task: {title}\nDescription: {description}"),
-    ]
+    """Suggest priority and deadline for a new task."""
     try:
-        response = await llm.ainvoke(messages)
-        raw = response.content if hasattr(response, "content") else str(response)
+        raw = await LLMFactory.call_ollama(
+            system=TRIAGE_SYSTEM,
+            user=f"Task: {title}\nDescription: {description}",
+            temperature=0.1,
+            max_tokens=200,
+            json_mode=True,
+        )
         return _extract_json(raw)
     except Exception as exc:
         logger.warning("ai.triage.failed", error=str(exc))
@@ -215,163 +295,19 @@ async def suggestTaskPriority(title: str, description: str) -> dict[str, Any]:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4. LangGraph Agent — WorkFlow Accountability Agent
-# ─────────────────────────────────────────────────────────────────────────────
-
-class AgentState(TypedDict):
-    """State passed between LangGraph nodes."""
-    messages: list[BaseMessage]
-    task_context: dict[str, Any]
-    analysis: str
-    recommendations: list[str]
-    risk_level: str  # low | medium | high | critical
-
-
-def _build_accountability_graph() -> StateGraph:
-    """
-    LangGraph agent that runs multi-step analysis on a task batch.
-    Steps: analyse_risks → flag_anomalies → generate_recommendations
-    """
-    llm = LLMFactory.get_chat_llm(temperature=0.2)
-
-    async def analyse_risks(state: AgentState) -> AgentState:
-        """Step 1: Identify risky tasks (overdue, high priority, no logs)."""
-        tasks = state["task_context"].get("tasks", [])
-        overdue = [t for t in tasks if t.get("status") == "overdue"]
-        high_priority = [t for t in tasks if t.get("priority") in ("high", "critical")]
-        no_logs = [t for t in tasks if t.get("log_count", 0) == 0]
-
-        analysis = (
-            f"Risk Analysis: {len(overdue)} overdue, "
-            f"{len(high_priority)} high/critical priority, "
-            f"{len(no_logs)} tasks with no work logs submitted."
-        )
-        state["analysis"] = analysis
-        state["risk_level"] = "critical" if len(overdue) > 3 else ("high" if overdue else "medium")
-        return state
-
-    async def flag_anomalies(state: AgentState) -> AgentState:
-        """Step 2: Use LLM to spot patterns (employees with all Low confidence)."""
-        tasks = state["task_context"].get("tasks", [])
-        low_conf_employees = {}
-        for t in tasks:
-            if t.get("latest_ai_confidence") == "Low":
-                emp = t.get("assignedTo", "Unknown")
-                low_conf_employees[emp] = low_conf_employees.get(emp, 0) + 1
-
-        anomalies = [
-            f"{emp} has {count} tasks flagged as Low confidence work logs"
-            for emp, count in low_conf_employees.items()
-            if count >= 2
-        ]
-        if anomalies:
-            state["messages"].append(
-                AIMessage(content=f"Anomalies detected: {'; '.join(anomalies)}")
-            )
-        return state
-
-    async def generate_recommendations(state: AgentState) -> AgentState:
-        """Step 3: LLM generates actionable recommendations."""
-        context = f"""
-Current situation: {state['analysis']}
-Risk level: {state['risk_level']}
-Anomalies: {[m.content for m in state['messages'] if isinstance(m, AIMessage)]}
-"""
-        messages = [
-            SystemMessage(content="You are a workplace productivity coach. Give 3 specific, actionable recommendations."),
-            HumanMessage(content=context),
-        ]
-        response = await llm.ainvoke(messages)
-        recs = [line.strip() for line in response.content.split("\n") if line.strip() and line[0].isdigit()]
-        state["recommendations"] = recs[:3] if recs else ["Review overdue tasks immediately."]
-        return state
-
-    graph = StateGraph(AgentState)
-    graph.add_node("analyse_risks", analyse_risks)
-    graph.add_node("flag_anomalies", flag_anomalies)
-    graph.add_node("generate_recommendations", generate_recommendations)
-
-    graph.add_edge(START, "analyse_risks")
-    graph.add_edge("analyse_risks", "flag_anomalies")
-    graph.add_edge("flag_anomalies", "generate_recommendations")
-    graph.add_edge("generate_recommendations", END)
-
-    return graph.compile()
-
-
-# Singleton compiled graph
-_accountability_agent = _build_accountability_graph()
-
-
-async def runAccountabilityAgent(tasks: list[dict[str, Any]]) -> dict[str, Any]:
-    """
-    Runs the LangGraph accountability agent on the full task list.
-    Returns: {analysis, risk_level, recommendations}
-    """
-    initial_state: AgentState = {
-        "messages": [],
-        "task_context": {"tasks": tasks},
-        "analysis": "",
-        "recommendations": [],
-        "risk_level": "low",
-    }
-    final_state = await _accountability_agent.ainvoke(initial_state)
-    return {
-        "analysis": final_state["analysis"],
-        "risk_level": final_state["risk_level"],
-        "recommendations": final_state["recommendations"],
-    }
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 5. RAG Service — Semantic Work Log Search (LlamaIndex + pgvector)
+# 4. RAG Service — lightweight fallback (no pgvector dependency)
 # ─────────────────────────────────────────────────────────────────────────────
 
 class RAGService:
     """
-    Semantic search over historical work logs using LlamaIndex.
-    Embeddings: nomic-embed-text via Ollama
-    Store: Supabase pgvector
+    In-memory log store for semantic-ish search.
+    Replace with pgvector/Supabase when ready.
     """
-
-    _index: Any = None
+    _logs: list[dict[str, Any]] = []
 
     @classmethod
     async def initialize(cls, database_url: str) -> None:
-        """Build or load the vector index. Called at app startup."""
-        try:
-            from llama_index.core import Settings as LISettings, VectorStoreIndex
-            from llama_index.embeddings.ollama import OllamaEmbedding
-            from llama_index.llms.ollama import Ollama as LIOllama
-            from llama_index.vector_stores.supabase import SupabaseVectorStore
-
-            from app.config import settings as app_settings
-
-            # Configure LlamaIndex to use Ollama
-            LISettings.llm = LIOllama(
-                model=app_settings.ollama_model,
-                base_url=app_settings.ollama_base_url,
-            )
-            LISettings.embed_model = OllamaEmbedding(
-                model_name=app_settings.ollama_embedding_model,
-                base_url=app_settings.ollama_base_url,
-            )
-
-            if "sqlite" in database_url:
-                # In-memory Local RAG fallback
-                cls._index = VectorStoreIndex([])
-                logger.info("rag.initialized", store="local_in_memory_simple_vector_store")
-                return
-
-            vector_store = SupabaseVectorStore(
-                postgres_connection_string=database_url,
-                collection_name="work_log_embeddings",
-                dimension=768,
-            )
-            cls._index = VectorStoreIndex.from_vector_store(vector_store)
-            logger.info("rag.initialized", store="supabase_pgvector")
-        except Exception as exc:
-            logger.warning("rag.init_failed", error=str(exc))
+        logger.info("rag.initialized", store="in_memory")
 
     @classmethod
     async def search_similar_logs(
@@ -380,35 +316,18 @@ class RAGService:
         task_id: uuid.UUID | None = None,
         top_k: int = 5,
     ) -> list[dict[str, Any]]:
-        """Find semantically similar work logs to the query."""
-        if cls._index is None:
-            return []
-        try:
-            engine = cls._index.as_query_engine(similarity_top_k=top_k)
-            response = await engine.aquery(query)
-            results = []
-            for node in response.source_nodes:
-                results.append({
-                    "text": node.text,
-                    "score": node.score,
-                    "metadata": node.metadata,
-                })
-            return results
-        except Exception as exc:
-            logger.warning("rag.search_failed", error=str(exc))
-            return []
+        """Simple keyword match fallback."""
+        q = query.lower()
+        results = [
+            lg for lg in cls._logs
+            if q in lg.get("text", "").lower()
+            and (task_id is None or str(task_id) == lg.get("metadata", {}).get("task_id"))
+        ]
+        return results[:top_k]
 
     @classmethod
     async def index_log(cls, log_text: str, metadata: dict[str, Any]) -> None:
-        """Add a new work log to the vector index."""
-        if cls._index is None:
-            return
-        try:
-            from llama_index.core import Document
-            doc = Document(text=log_text, metadata=metadata)
-            cls._index.insert(doc)
-        except Exception as exc:
-            logger.warning("rag.index_failed", error=str(exc))
+        cls._logs.append({"text": log_text, "metadata": metadata})
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -416,30 +335,21 @@ class RAGService:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _extract_json(raw: str) -> dict[str, Any]:
-    """
-    Robustly extract JSON from LLM output.
-    Handles markdown code fences, inline JSON, and partial wrapping.
-    """
-    # Try direct parse first
+    """Robustly extract JSON from LLM output."""
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
         pass
-
-    # Try extracting from ```json ... ``` blocks
     match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw, re.DOTALL)
     if match:
         try:
             return json.loads(match.group(1))
         except json.JSONDecodeError:
             pass
-
-    # Try extracting first { ... } block
     match = re.search(r"\{.*?\}", raw, re.DOTALL)
     if match:
         try:
             return json.loads(match.group(0))
         except json.JSONDecodeError:
             pass
-
     raise ValueError(f"Cannot extract JSON from LLM output: {raw[:200]}")

@@ -7,7 +7,7 @@ import { MOCK_EMPLOYEES, MOCK_AI_SUMMARY } from '../api/mockData';
 import {
   getAllTasks, addTask, getTaskStats,
   getNeedsAttentionTasks, getEmployeeSummaries,
-  getAuditTrail, getLogsForTask,
+  getAuditTrail, getLogsForTask, getAllLogs,
 } from '../api/taskStore';
 // import client from '../api/client'; // ← uncomment when backend is ready
 
@@ -296,6 +296,7 @@ export default function ManagerDashboard() {
   const [tasks, setTasks]           = useState(() => getAllTasks());
   const [stats, setStats]           = useState(() => getTaskStats());
   const [empSummaries, setEmpSummaries] = useState(() => getEmployeeSummaries());
+  const [allLogs, setAllLogs]       = useState(() => getAllLogs());
   const [employees]                 = useState(MOCK_EMPLOYEES);
   const [showModal, setShowModal]   = useState(false);
   const [selectedTask, setSelectedTask] = useState(null); // { id, title }
@@ -314,6 +315,7 @@ export default function ManagerDashboard() {
     setStats(getTaskStats());
     setEmpSummaries(getEmployeeSummaries());
     setAttentionCount(getNeedsAttentionTasks().length);
+    setAllLogs(getAllLogs());
   }
 
   useEffect(() => {
@@ -322,8 +324,7 @@ export default function ManagerDashboard() {
       if (e.key === 'wf_tasks' || e.key === 'wf_logs' || e.key === null) {
         refresh();
       }
-    }
-    // Same-tab navigation: fires when user switches back to this tab
+    }    // Same-tab navigation: fires when user switches back to this tab
     function onVisibility() {
       if (document.visibilityState === 'visible') refresh();
     }
@@ -495,6 +496,49 @@ export default function ManagerDashboard() {
             }
           </div>
         )}
+
+        {/* ── Combined Activity Feed — all employee logs newest first ── */}
+        <div className={styles.feedPanel}>
+          <h3 className={styles.feedTitle}>📋 All Employee Submissions</h3>
+          {allLogs.length === 0 ? (
+            <p className={styles.feedEmpty}>No work logs submitted yet. Logs from all employees will appear here in real time.</p>
+          ) : (
+            <div className={styles.feedList}>
+              {allLogs.map((log) => {
+                const task = tasks.find((t) => t.id === log.taskId);
+                return (
+                  <div key={log.id} className={styles.feedEntry}>
+                    <div className={styles.feedEntryLeft}>
+                      <span className={styles.feedAvatar}>
+                        {log.employeeName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className={styles.feedEntryBody}>
+                      <div className={styles.feedEntryHeader}>
+                        <span className={styles.feedName}>{log.employeeName}</span>
+                        <span className={styles.feedTask}>
+                          {task ? task.title : log.taskId}
+                        </span>
+                        <span className={`${styles.feedStatus} ${log.status === 'Completed' ? styles.feedStatusDone : styles.feedStatusProgress}`}>
+                          {log.status}
+                        </span>
+                        {log.hasProof && <span className={styles.feedProof}>📎 Proof</span>}
+                      </div>
+                      <p className={styles.feedText}>{log.logText}</p>
+                      <div className={styles.feedFooter}>
+                        <span className={`${styles.confPill} ${confidenceClass(log.aiConfidence, styles)}`}>
+                          🤖 {log.aiConfidence}
+                        </span>
+                        <span className={styles.feedFeedback}>{log.aiFeedback}</span>
+                        <span className={styles.feedTime}>🕐 {fmt(log.submittedAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </main>
 
       {showModal && (

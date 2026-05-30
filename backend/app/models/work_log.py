@@ -28,10 +28,19 @@ class WorkLog(SQLModel, table=True):
     task_id: uuid.UUID = Field(foreign_key="tasks.id", index=True)
     employee_id: uuid.UUID = Field(foreign_key="profiles.id", index=True)
     log_text: str  # The free-text work log entry
+
+    # ── Proof-of-work file attachment ─────────────────────────────────────────
+    proof_file_path: Optional[str] = Field(default=None)   # path on disk / storage
+    proof_file_name: Optional[str] = Field(default=None)   # original filename
+    proof_mime_type: Optional[str] = Field(default=None)   # e.g. image/png, application/pdf
+
+    # ── AI verification ───────────────────────────────────────────────────────
     ai_confidence: AIConfidence = Field(default=AIConfidence.PENDING)
     ai_feedback: Optional[str] = Field(default=None)  # One-sentence AI explanation
     ai_verified_at: Optional[datetime] = Field(default=None)
-    submitted_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # ── Timestamps ────────────────────────────────────────────────────────────
+    submitted_at: datetime = Field(default_factory=datetime.utcnow)  # recorded server-side
 
     # Relationships
     task: "Task" = Relationship(back_populates="work_logs")  # type: ignore[name-defined]  # noqa: F821

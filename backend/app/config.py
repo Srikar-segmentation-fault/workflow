@@ -20,23 +20,33 @@ class Settings(BaseSettings):
     supabase_url: str
     supabase_anon_key: str
     supabase_service_role_key: str
-    database_url: str  # asyncpg connection string
+    database_url: str
 
     # ── Auth ───────────────────────────────────────────────────────────────────
     jwt_secret: str
     jwt_algorithm: str = "HS256"
-    jwt_access_token_expire_minutes: int = 1440  # 24 hours
+    jwt_access_token_expire_minutes: int = 1440
 
     # ── Ollama ─────────────────────────────────────────────────────────────────
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3.2:3b"
-    ollama_embedding_model: str = "nomic-embed-text"
+    ollama_model: str = "qwen2.5"
+
+    # ── File uploads ───────────────────────────────────────────────────────────
+    upload_dir: str = "uploads/proof"
+    max_upload_bytes: int = 10 * 1024 * 1024   # 10 MB
+    allowed_mime_types: list[str] = [
+        "image/jpeg", "image/png", "image/gif", "image/webp",
+        "application/pdf",
+        "text/plain", "text/csv",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ]
 
     # ── App ────────────────────────────────────────────────────────────────────
     app_env: Literal["development", "production", "test"] = "development"
     app_host: str = "0.0.0.0"
     app_port: int = 8000
-    frontend_url: str = "http://localhost:8501"
+    frontend_url: str = "http://localhost:5173"
 
     # ── Logging ────────────────────────────────────────────────────────────────
     log_level: str = "INFO"
@@ -47,12 +57,16 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> list[str]:
-        return [self.frontend_url, "http://localhost:8501", "http://127.0.0.1:8501"]
+        return [
+            self.frontend_url,
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:8501",
+        ]
 
 
 @lru_cache
 def get_settings() -> Settings:
-    """Cached settings singleton — import this everywhere."""
     return Settings()  # type: ignore[call-arg]
 
 

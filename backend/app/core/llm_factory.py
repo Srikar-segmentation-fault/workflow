@@ -1,75 +1,102 @@
 """
 WorkFlow — LLM Factory
-Provides a pluggable LLM abstraction so the AI service can swap
-providers without changing business logic.
-Currently supports: Ollama (local)
+Provider: Ollama (local) — model: qwen2.5
+Uses the Ollama REST API directly via httpx (no SDK dependency).
 """
+import json
+
+import httpx
 import structlog
-from langchain_ollama import ChatOllama
 
 from app.config import settings
 
 logger = structlog.get_logger()
 
+# Ollama chat endpoint
+_OLLAMA_CHAT_URL = "{base}/api/chat"
+_OLLAMA_TAGS_URL = "{base}/api/tags"
+
 
 class LLMFactory:
     """
-    Returns a configured LangChain chat model.
-    Strategy pattern — add more providers (Claude, GPT) by adding branches.
+    Thin async wrapper around the Ollama /api/chat endpoint.
+    All AI calls go through call_ollama() for a consistent interface.
     """
 
-    _chat_model: ChatOllama | None = None
-
     @classmethod
-    def get_chat_llm(cls, temperature: float = 0.1) -> ChatOllama:
+    async def call_ollama(
+        cls,
+        system: str,
+        user: str,
+        temperature: float = 0.0,
+        max_tokens: int = 512,
+        json_mode: bool = False,
+    ) -> str:
         """
-        Returns a singleton ChatOllama instance.
-        temperature=0.1 for deterministic, factual AI verification.
+        POST to Ollama /api/chat and return the assistant message content.
+        json_mode=True appends a JSON-only instruction and sets format="json".
         """
-        if cls._chat_model is None:
-            logger.info(
-                "llm.initializing",
-                provider="ollama",
-                model=settings.ollama_model,
-                base_url=settings.ollama_base_url,
+        if json_mode:
+            user = (
+                user
+                + "\n\nIMPORTANT: Respond ONLY with valid JSON. "
+                "No markdown fences, no extra text."
             )
-            cls._chat_model = ChatOllama(
-                model=settings.ollama_model,
-                base_url=settings.ollama_base_url,
-                temperature=temperature,
-                num_predict=600,
-                format="",  # JSON format set per-call when needed
-            )
-        return cls._chat_model
 
-    @classmethod
-    def get_json_llm(cls) -> ChatOllama:
-        """Returns Ollama configured to output JSON — used for verifyLog."""
-        return ChatOllama(
+        payload: dict = {
+            "model": settings.ollama_model,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user",   "content": user},
+            ],
+            "stream": False,
+            "options": {
+                "temperature": temperature,
+                "num_predict": max_tokens,
+            },
+        }
+        if json_mode:
+            payload["format"] = "json"
+
+        url = _OLLAMA_CHAT_URL.format(base=settings.ollama_base_url)
+
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(url, json=payload)
+            response.raise_for_status()
+
+        data = response.json()
+        text = data["message"]["content"].strip()
+
+        logger.info(
+            "llm.call_complete",
+            provider="ollama",
             model=settings.ollama_model,
-            base_url=settings.ollama_base_url,
-            temperature=0.0,
-            num_predict=300,
-            format="json",
+            chars=len(text),
         )
+        return text
 
     @classmethod
     async def health_check(cls) -> dict:
-        """Check if Ollama is reachable and model is available."""
-        import httpx
-
+        """Check Ollama is running and qwen2.5 is available."""
         try:
+            url = _OLLAMA_TAGS_URL.format(base=settings.ollama_base_url)
             async with httpx.AsyncClient(timeout=5.0) as client:
-                resp = await client.get(f"{settings.ollama_base_url}/api/tags")
-                models = resp.json().get("models", [])
-                available = [m["name"] for m in models]
-                model_ready = any(
-                    settings.ollama_model in m for m in available
-                )
-                return {
-                    "status": "ok" if model_ready else "model_not_found",
-                    "available_models": available,
-                    "configured_model": settings.ollama_model,
-                }
+                resp = await client.get(url)
+                resp.raise_for_status()
+
+            models = [m["name"] for m in resp.json().get("models", [])]
+            model_ready = any(settings.ollama_model in m for m in models)
+
+            return {
+                "status": "ok" if model_ready else "model_not_found",
+                "provider": "ollama",
+                "model": settings.ollama_model,
+                "available_models": models,
+            }
         except Exception as e:
-            return {"status": "unreachable", "error": str(e)}
+            return {
+                "status": "unreachable",
+                "provider": "ollama",
+                "model": settings.ollama_model,
+                "error": str(e),
+            }

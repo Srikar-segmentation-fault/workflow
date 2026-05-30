@@ -9,7 +9,6 @@ from typing import AsyncGenerator
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import settings
@@ -53,10 +52,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         await init_db()
         logger.info("db.tables_created")
 
-    # Init RAG vector index
-    await RAGService.initialize(database_url=settings.database_url.replace(
-        "postgresql+asyncpg://", "postgresql://"
-    ))
+    # Init RAG (in-memory, no external deps)
+    await RAGService.initialize(database_url=settings.database_url)
 
     logger.info("workflow.ready", host=settings.app_host, port=settings.app_port)
     yield

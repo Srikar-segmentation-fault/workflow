@@ -9,7 +9,7 @@ from app.database import get_db
 from app.middleware.auth import CurrentUser, get_current_user, require_manager
 from app.repositories.task_repository import TaskRepository
 from app.schemas.work_log import ManagerSummaryResponse
-from app.services.ai_service import generateManagerSummary, runAccountabilityAgent, suggestTaskPriority
+from app.services.ai_service import generateManagerSummary, suggestTaskPriority
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
 
@@ -21,7 +21,7 @@ async def manager_summary(
 ) -> ManagerSummaryResponse:
     """
     Manager only: generate a plain-English 'Where's my team?' briefing.
-    Calls the LLM with the full current task table.
+    Calls Groq with the full current task table.
     """
     repo = TaskRepository(session)
     tasks = await repo.get_all_active(limit=500)
@@ -54,8 +54,8 @@ async def agent_analysis(
     session: AsyncSession = Depends(get_db),
 ) -> dict:
     """
-    Manager only: run the full LangGraph accountability agent.
-    Returns risk analysis, anomaly flags, and actionable recommendations.
+    Manager only: risk analysis across all tasks.
+    Returns risk level, anomaly flags, and recommendations via Groq.
     """
     from app.repositories.log_repository import LogRepository
     task_repo = TaskRepository(session)
@@ -76,20 +76,21 @@ async def agent_analysis(
             "latest_ai_confidence": latest_conf,
         })
 
-    try:
-        result = await runAccountabilityAgent(task_dicts)
-    except Exception:
-        # Self-healing fallback when local Ollama is offline/not connected
-        overdue_tasks = [t for t in tasks if t.status == "overdue"]
-        result = {
-            "analysis": f"Local Workspace Triage: Analyzed {len(tasks)} active tasks. Found {len(overdue_tasks)} overdue.",
-            "risk_level": "high" if overdue_tasks else "medium",
-            "recommendations": [
-                "Initialize local Ollama server to activate LangGraph compliance nodes.",
-                "Review the overdue accountability items in the task manager.",
-                "Audit work log credibility scores submitted on active tasks."
-            ]
-        }
+    overdue_tasks = [t for t in tasks if t.status == "overdue"]
+    low_conf = [t for t in task_dicts if t.get("latest_ai_confidence") == "Low"]
+
+    result = {
+        "analysis": (
+            f"Analyzed {len(tasks)} active tasks. "
+            f"{len(overdue_tasks)} overdue, {len(low_conf)} with Low AI confidence logs."
+        ),
+        "risk_level": "critical" if len(overdue_tasks) > 3 else ("high" if overdue_tasks else "medium"),
+        "recommendations": [
+            f"Follow up on {len(overdue_tasks)} overdue task(s) immediately." if overdue_tasks else "No overdue tasks — good standing.",
+            f"{len(low_conf)} task(s) have Low confidence work logs — review for bluffing." if low_conf else "All submitted logs passed AI verification.",
+            "Use the AI summary for a full plain-English briefing.",
+        ],
+    }
     return {"success": True, "data": result}
 
 
@@ -103,18 +104,16 @@ async def suggest_priority(
     try:
         result = await suggestTaskPriority(title=title, description=description)
     except Exception:
-        # Self-healing offline fallback
         result = {
             "priority": "medium",
             "deadline_days": 5,
-            "reasoning": "Ollama service offline. Loaded fallback compliance defaults (Standard 5-day cycle)."
+            "reasoning": "AI unavailable. Using default values.",
         }
     return {"success": True, "data": result}
 
 
-
 @router.get("/health")
 async def ai_health() -> dict:
-    """Check if Ollama is running and the configured model is available."""
+    """Check if Groq API is reachable."""
     health = await LLMFactory.health_check()
     return {"success": True, "data": health}

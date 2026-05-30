@@ -154,6 +154,20 @@ export function getLogsForTask(taskId) {
   return logsMap[taskId] || [];
 }
 
+/**
+ * Get ALL logs across every task, sorted newest-first.
+ * Used by the manager's combined activity feed.
+ */
+export function getAllLogs() {
+  const logsMap = readMap(LOGS_KEY) || {};
+  const all = [];
+  Object.values(logsMap).forEach((taskLogs) => {
+    taskLogs.forEach((log) => all.push(log));
+  });
+  // Sort newest submission first
+  return all.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+}
+
 // ─── Audit Trail ──────────────────────────────────────────────────────────────
 function appendAudit(entry) {
   const trail = readArray(AUDIT_KEY);
@@ -215,8 +229,15 @@ export function getEmployeeSummaries() {
 }
 
 // ─── Clear (logout) ───────────────────────────────────────────────────────────
+// Tasks, logs, and audit trail are COMPANY data — they persist across sessions.
+// Only call this when you want a full reset (e.g. dev/testing).
 export function clearTasks() {
   localStorage.removeItem(TASKS_KEY);
   localStorage.removeItem(LOGS_KEY);
   localStorage.removeItem(AUDIT_KEY);
+}
+
+// Called on every logout — does NOT wipe task/log data.
+export function clearSession() {
+  // nothing to clear at store level; auth tokens are handled by AuthContext
 }

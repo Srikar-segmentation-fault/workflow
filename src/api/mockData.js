@@ -1,11 +1,17 @@
 // ── MOCK DATA ────────────────────────────────────────────────────────────────
 // Replace these with real API calls once the backend is ready.
 
-export const MOCK_EMPLOYEES = [
-  { id: '2', name: 'Bob Employee' },
-  { id: '3', name: 'Carol Smith' },
-  { id: '4', name: 'David Lee' },
+// ── All users (manager + employees) ──────────────────────────────────────────
+export const MOCK_USERS = [
+  { id: '1', name: 'Alice Manager', email: 'manager@demo.com',  role: 'manager',  password: 'password' },
+  { id: '2', name: 'Bob Employee',  email: 'bob@demo.com',      role: 'employee', password: 'password' },
+  { id: '3', name: 'Carol Smith',   email: 'carol@demo.com',    role: 'employee', password: 'password' },
+  { id: '4', name: 'David Lee',     email: 'david@demo.com',    role: 'employee', password: 'password' },
 ];
+
+export const MOCK_EMPLOYEES = MOCK_USERS.filter((u) => u.role === 'employee').map(
+  ({ id, name }) => ({ id, name })
+);
 
 const today = new Date();
 const daysFromNow = (n) => {
@@ -22,7 +28,7 @@ export const MOCK_TASKS = [
     assignedTo: '2',
     assignedName: 'Bob Employee',
     priority: 'High',
-    deadline: daysFromNow(-2), // overdue
+    deadline: daysFromNow(-2),
     status: 'In Progress',
   },
   {
@@ -42,7 +48,7 @@ export const MOCK_TASKS = [
     assignedTo: '4',
     assignedName: 'David Lee',
     priority: 'High',
-    deadline: daysFromNow(-1), // overdue
+    deadline: daysFromNow(-1),
     status: 'Pending',
   },
   {
@@ -65,74 +71,46 @@ export const MOCK_TASKS = [
     deadline: daysFromNow(1),
     status: 'In Progress',
   },
+  {
+    id: 't6',
+    title: 'Reconcile Monthly Expenses',
+    description: 'Cross-check all expense claims against receipts for May.',
+    assignedTo: '4',
+    assignedName: 'David Lee',
+    priority: 'Medium',
+    deadline: daysFromNow(4),
+    status: 'Pending',
+  },
+  {
+    id: 't7',
+    title: 'Draft Q3 Marketing Plan',
+    description: 'Outline campaigns, budget allocation, and KPIs for Q3.',
+    assignedTo: '2',
+    assignedName: 'Bob Employee',
+    priority: 'Medium',
+    deadline: daysFromNow(5),
+    status: 'Pending',
+  },
+  {
+    id: 't8',
+    title: 'Conduct Vendor Evaluation',
+    description: 'Evaluate three shortlisted vendors and submit a recommendation.',
+    assignedTo: '3',
+    assignedName: 'Carol Smith',
+    priority: 'High',
+    deadline: daysFromNow(2),
+    status: 'In Progress',
+  },
 ];
 
-export const MOCK_HISTORY = {
-  t1: [
-    {
-      id: 'h1',
-      timestamp: '2026-05-28 09:14',
-      actorName: 'Alice Manager',
-      action: 'Task Created',
-      detail: 'Task assigned to Bob Employee with High priority.',
-    },
-    {
-      id: 'h2',
-      timestamp: '2026-05-28 11:30',
-      actorName: 'Bob Employee',
-      action: 'Status Updated',
-      detail: 'Status changed from Pending → In Progress.',
-    },
-    {
-      id: 'h3',
-      timestamp: '2026-05-29 10:05',
-      actorName: 'Bob Employee',
-      action: 'Work Log Submitted',
-      detail: 'Compiled raw sales data from CRM. Still need to build the deck.',
-    },
-    {
-      id: 'h4',
-      timestamp: '2026-05-29 10:06',
-      actorName: 'AI Verifier',
-      action: 'Log Verified',
-      detail: 'Confidence: Medium — log describes partial progress but lacks specifics on completion.',
-    },
-    {
-      id: 'h5',
-      timestamp: '2026-05-30 08:00',
-      actorName: 'System',
-      action: 'Overdue Alert',
-      detail: 'Task passed its deadline of 2026-05-28 without completion.',
-    },
-  ],
-  t2: [
-    {
-      id: 'h6',
-      timestamp: '2026-05-29 14:00',
-      actorName: 'Alice Manager',
-      action: 'Task Created',
-      detail: 'Task assigned to Carol Smith with Medium priority.',
-    },
-    {
-      id: 'h7',
-      timestamp: '2026-05-30 09:20',
-      actorName: 'Carol Smith',
-      action: 'Status Updated',
-      detail: 'Status changed from Pending → In Progress.',
-    },
-  ],
-};
+export const MOCK_AI_SUMMARY = `**Team Status — Today**
 
-export const MOCK_MY_TASKS = MOCK_TASKS.filter((t) => t.assignedTo === '2');
+🔴 **Overdue:** Bob's "Q2 Sales Report" is 2 days past deadline. David's "Fix Invoice Discrepancy" is 1 day overdue with no log submitted.
 
-export const MOCK_AI_SUMMARY = `**Team Status — May 30, 2026**
+🟡 **At Risk:** Carol's "Review New Supplier Contracts" is due tomorrow. Carol's "Vendor Evaluation" is due in 2 days and in progress.
 
-🔴 **Overdue (2 tasks):** Bob Employee's "Q2 Sales Report" is 2 days past deadline and still In Progress. David Lee's "Fix Invoice Discrepancy" is 1 day overdue with no log submitted — follow up immediately.
+🟢 **On Track:** Bob's "Q3 Marketing Plan" (5d), David's "Reconcile Expenses" (4d), Carol's "Onboarding Docs" (3d).
 
-🟡 **At Risk (1 task):** Carol Smith's "Review New Supplier Contracts" is due tomorrow and currently In Progress. No blockers reported.
+✅ **Completed:** Bob completed "Schedule Team Training" on time.
 
-🟢 **On Track (1 task):** Carol Smith's "Update Client Onboarding Docs" is Pending with 3 days remaining.
-
-✅ **Completed (1 task):** Bob Employee completed "Schedule Team Training" on time.
-
-**Recommendation:** Prioritise a check-in with David Lee today — no activity has been logged on the overdue invoice task.`;
+**Recommendation:** Follow up with David immediately — no activity logged on either of his tasks.`;
